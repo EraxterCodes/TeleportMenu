@@ -225,82 +225,104 @@ function tpm:checkQuestCompletion(quest)
 end
 
 function tpm:CreateHerosPathFlyout(flyoutId, iconId)
-	local _, _, spells, flyoutKnown = GetFlyoutInfo(flyoutId)
-	if not flyoutKnown then return end
-	local button = CreateFrame("Button", nil, TeleportMeButtonsFrame, "SecureActionButtonTemplate")
-	local yOffset = -40 * TeleportMeButtonsFrame:GetButtonAmount()
-	button:SetSize(40, 40)
-	button:SetNormalTexture(iconId)
-	button:SetPoint("TOPLEFT", TeleportMeButtonsFrame, "TOPRIGHT", 0, yOffset)
-	button:EnableMouse(true)
-	button:RegisterForClicks("AnyDown", "AnyUp")
-	button:SetFrameStrata("HIGH")
-	button:SetFrameLevel(101)
-	button:SetScript("OnEnter", function(self)
-		if InCombatLockdown() then
-			tpm:setCombatTooltip(self)
-			return
-		end
-		tpm:setToolTip(self, "flyout", flyoutId)
-		self.flyOutFrame:Show()
-	end)
-	button:SetScript("OnLeave", function(self)
-		GameTooltip:Hide()
-	end)
+    local _, _, spells, flyoutKnown = GetFlyoutInfo(flyoutId)
+    if not flyoutKnown then return end
 
-	local flyOutFrame = CreateFrame("Frame", nil, TeleportMeButtonsFrame)
-	flyOutFrame:SetPoint("TOPLEFT", TeleportMeButtonsFrame, "TOPRIGHT", 0, yOffset)
-	flyOutFrame:SetFrameStrata("HIGH")
-	flyOutFrame:SetFrameLevel(103)
-	flyOutFrame:SetPropagateMouseClicks(true)
-	flyOutFrame:SetPropagateMouseMotion(true)
-	flyOutFrame.mainButton = button
-	flyOutFrame:SetScript("OnLeave", function(self)
-		GameTooltip:Hide()
-		if not InCombatLockdown() then
-			self:Hide()
-		end
-	end)
-	flyOutFrame:Hide()
-	button.flyOutFrame = flyOutFrame
+    local button = CreateFrame("Button", nil, TeleportMeButtonsFrame, "SecureActionButtonTemplate")
+    local yOffset = -40 * TeleportMeButtonsFrame:GetButtonAmount()
+    button:SetSize(40, 40)
+    button:SetNormalTexture(iconId)
+    button:SetPoint("TOPLEFT", TeleportMeButtonsFrame, "TOPRIGHT", 0, yOffset)
+    button:EnableMouse(true)
+    button:RegisterForClicks("AnyDown", "AnyUp")
+    button:SetFrameStrata("HIGH")
+    button:SetFrameLevel(101)
+    button:SetScript("OnEnter", function(self)
+        if InCombatLockdown() then
+            tpm:setCombatTooltip(self)
+            return
+        end
+        tpm:setToolTip(self, "flyout", flyoutId)
+        self.flyOutFrame:Show()
+    end)
+    button:SetScript("OnLeave", function(self)
+        GameTooltip:Hide()
+    end)
 
-	local flyOutButtons = {}
-	local flyoutsCreated = 0
-	for i = 1, spells do
-		local spellID = select(1, GetFlyoutSlotInfo(flyoutId, i))
-		if IsSpellKnown(spellID) then
-			flyoutsCreated = flyoutsCreated + 1
-			local xOffset = 40 * flyoutsCreated
-			local spellName = C_Spell.GetSpellName(spellID)
-			local spellTexture = C_Spell.GetSpellTexture(spellID)
-			local flyOutButton = CreateFrame("Button", nil, flyOutFrame," SecureActionButtonTemplate")
-			flyOutButton:SetSize(40, 40)
-			flyOutButton:SetNormalTexture(spellTexture)
-			flyOutButton:SetAttribute("type", "spell")
-			flyOutButton:SetAttribute("spell", spellID)
-			flyOutButton:SetPoint("RIGHT", flyOutFrame, "LEFT", 40 + xOffset, 0)
-			flyOutButton:EnableMouse(true)
-			flyOutButton:RegisterForClicks("AnyDown", "AnyUp")
-			flyOutButton:SetFrameStrata("HIGH")
-			flyOutButton:SetFrameLevel(102)
-			flyOutButton:SetScript("OnEnter", function(self)
-				tpm:setToolTip(self, "spell", spellID)
-			end)
-			flyOutButton:SetScript("OnLeave", function(self)
-				GameTooltip:Hide()
-			end)
-			flyOutButton.cooldownFrame = tpm:createCooldownFrame(flyOutButton)
-			flyOutButton.cooldownFrame:CheckCooldown(spellID)
-			flyOutButton:SetScript("OnShow", function(self)
-				self.cooldownFrame:CheckCooldown(spellID)
-			end)
-			table.insert(flyOutButtons, flyOutButton)
-		end
-	end
-	flyOutFrame:SetSize(40 + (40 * flyoutsCreated), 40)
+    local flyOutFrame = CreateFrame("Frame", nil, TeleportMeButtonsFrame)
+    flyOutFrame:SetPoint("TOPLEFT", TeleportMeButtonsFrame, "TOPRIGHT", 0, yOffset)
+    flyOutFrame:SetFrameStrata("HIGH")
+    flyOutFrame:SetFrameLevel(103)
+    flyOutFrame:SetPropagateMouseClicks(true)
+    flyOutFrame:SetPropagateMouseMotion(true)
+    flyOutFrame.mainButton = button
+    flyOutFrame:SetScript("OnLeave", function(self)
+        GameTooltip:Hide()
+        if not InCombatLockdown() then
+            self:Hide()
+        end
+    end)
+    flyOutFrame:Hide()
+    button.flyOutFrame = flyOutFrame
 
-	button.flyOutButtons = flyOutButtons
-	return button
+    local flyOutButtons = {}
+    local flyoutsCreated = 0
+
+    -- Check if reverse_flyouts is enabled
+    local reverseFlyouts = TeleportMenuDB.reverse_flyouts
+
+    -- Function to create a flyout button
+    local function createFlyOutButton(spellID, index)
+        local spellName = C_Spell.GetSpellName(spellID)
+        local spellTexture = C_Spell.GetSpellTexture(spellID)
+        local flyOutButton = CreateFrame("Button", nil, flyOutFrame, "SecureActionButtonTemplate")
+        flyOutButton:SetSize(40, 40)
+        flyOutButton:SetNormalTexture(spellTexture)
+        flyOutButton:SetAttribute("type", "spell")
+        flyOutButton:SetAttribute("spell", spellID)
+        flyOutButton:SetPoint("RIGHT", flyOutFrame, "LEFT", 40 + (40 * index), 0)
+        flyOutButton:EnableMouse(true)
+        flyOutButton:RegisterForClicks("AnyDown", "AnyUp")
+        flyOutButton:SetFrameStrata("HIGH")
+        flyOutButton:SetFrameLevel(102)
+        flyOutButton:SetScript("OnEnter", function(self)
+            tpm:setToolTip(self, "spell", spellID)
+        end)
+        flyOutButton:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+        end)
+        flyOutButton.cooldownFrame = tpm:createCooldownFrame(flyOutButton)
+        flyOutButton.cooldownFrame:CheckCooldown(spellID)
+        flyOutButton:SetScript("OnShow", function(self)
+            self.cooldownFrame:CheckCooldown(spellID)
+        end)
+        return flyOutButton
+    end
+
+    -- Loop through spells, either forwards or backwards based on the setting
+    if reverseFlyouts then
+        for i = spells, 1, -1 do
+            local spellID = select(1, GetFlyoutSlotInfo(flyoutId, i))
+            if IsSpellKnown(spellID) then
+                flyoutsCreated = flyoutsCreated + 1
+                local flyOutButton = createFlyOutButton(spellID, flyoutsCreated)
+                table.insert(flyOutButtons, flyOutButton)
+            end
+        end
+    else
+        for i = 1, spells do
+            local spellID = select(1, GetFlyoutSlotInfo(flyoutId, i))
+            if IsSpellKnown(spellID) then
+                flyoutsCreated = flyoutsCreated + 1
+                local flyOutButton = createFlyOutButton(spellID, flyoutsCreated)
+                table.insert(flyOutButtons, flyOutButton)
+            end
+        end
+    end
+
+    flyOutFrame:SetSize(40 + (40 * flyoutsCreated), 40)
+    button.flyOutButtons = flyOutButtons
+    return button
 end
 
 function tpm:CreateWormholeFlyout(iconId)
@@ -579,6 +601,8 @@ local function createAnchors()
 	function buttonsFrame:GetButtonAmount()
 		return TeleportMeButtonsFrame.buttonAmount
 	end
+
+	
 
 	for i, teleport in ipairs(tpTable) do
 		local texture
