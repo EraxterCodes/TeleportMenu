@@ -59,6 +59,30 @@ function tpm:LoadOptions()
         Settings.CreateCheckbox(optionsCategory, setting, tooltip)
     end
 
+    -- do -- Icon Size Slider
+    --     local optionsKey = "iconSize"
+    --     local tooltip = "Increase or decrease the size of the icons."
+    --     local options = Settings.CreateSliderOptions(10, 75, 1)
+    --     local label = "%s px"
+
+    --     local function GetValue()
+    --         return TeleportMenuDB[optionsKey] or defaultsDB[optionsKey]
+    --     end
+
+    --     local function SetValue(value)
+    --         TeleportMenuDB[optionsKey] = value
+    --     end
+
+    --     local setting = Settings.RegisterProxySetting(optionsCategory, "IconSize_Slider", type(defaultsDB[optionsKey]), "Icon Size", defaultsDB[optionsKey], GetValue, SetValue)
+
+    --     local function Formatter(value)
+	-- 		return label:format(value)
+	-- 	end
+    --     options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, Formatter)
+
+    --     Settings.CreateSlider(optionsCategory, setting, options, tooltip)
+    -- end
+
     -- Hearthstone Dropdown
     do
         local optionsKey = "hearthstone"
