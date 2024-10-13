@@ -14,6 +14,7 @@ local defaultsDB = {
     enabled = true,
     iconSize = 40,
     hearthstone = "none",
+    reverse_flyouts = false  -- Added this in your defaults
 }
 
 -- Get all options and verify them
@@ -39,6 +40,7 @@ local function OnSettingChanged(_, setting, value)
     end
 end
 
+
 local optionsCategory = Settings.RegisterVerticalLayoutCategory(ADDON_NAME)
 
 function tpm:GetOptionsCategory()
@@ -48,7 +50,8 @@ end
 function tpm:LoadOptions()
     local db = getOptions()
 
-    do -- Enabled Checkbox
+    -- Enabled Checkbox
+    do
         local optionsKey = "enabled"
         local tooltip = L["Enable Tooltip"]
         local setting = Settings.RegisterAddOnSetting(optionsCategory, "Enabled_Toggle", optionsKey, db, type(defaultsDB[optionsKey]), L["Enabled"], defaultsDB[optionsKey])
@@ -56,30 +59,7 @@ function tpm:LoadOptions()
         Settings.CreateCheckbox(optionsCategory, setting, tooltip)
     end
 
-    -- do -- Icon Size Slider
-    --     local optionsKey = "iconSize"
-    --     local tooltip = "Increase or decrease the size of the icons."
-    --     local options = Settings.CreateSliderOptions(10, 75, 1)
-    --     local label = "%s px"
-
-    --     local function GetValue()
-    --         return TeleportMenuDB[optionsKey] or defaultsDB[optionsKey]
-    --     end
-
-    --     local function SetValue(value)
-    --         TeleportMenuDB[optionsKey] = value
-    --     end
-
-    --     local setting = Settings.RegisterProxySetting(optionsCategory, "IconSize_Slider", type(defaultsDB[optionsKey]), "Icon Size", defaultsDB[optionsKey], GetValue, SetValue)
-
-    --     local function Formatter(value)
-	-- 		return label:format(value)
-	-- 	end
-    --     options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right, Formatter)
-
-    --     Settings.CreateSlider(optionsCategory, setting, options, tooltip)
-    -- end
-
+    -- Hearthstone Dropdown
     do
         local optionsKey = "hearthstone"
         local tooltip = L["Hearthstone Toy Tooltip"]
@@ -97,10 +77,17 @@ function tpm:LoadOptions()
         end
 
         local setting = Settings.RegisterAddOnSetting(optionsCategory, "Hearthstone_Dropdown", optionsKey, db, type(defaultsDB[optionsKey]), L["Hearthstone Toy"], defaultsDB[optionsKey])
-
         Settings.CreateDropdown(optionsCategory, setting, GetOptions, tooltip)
         Settings.SetOnValueChangedCallback("Hearthstone_Dropdown", OnSettingChanged)
     end
 
-	Settings.RegisterAddOnCategory(optionsCategory)
+    -- Reverse Flyouts Checkbox
+    do
+        local optionsKey = "reverse_flyouts"
+        local tooltip = L["Reverse the order of portal flyouts"]
+        local setting = Settings.RegisterAddOnSetting(optionsCategory, "Reverse_Flyouts_Toggle", optionsKey, db, type(defaultsDB[optionsKey]), L["Reverse Flyouts (requires /reload)"], defaultsDB[optionsKey])
+        Settings.CreateCheckbox(optionsCategory, setting, tooltip)
+    end
+
+    Settings.RegisterAddOnCategory(optionsCategory)
 end
