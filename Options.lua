@@ -14,7 +14,8 @@ local defaultsDB = {
     enabled = true,
     iconSize = 40,
     hearthstone = "none",
-    reverse_flyouts = false  -- Added this in your defaults
+    reverse_flyouts = false  
+    showOnlySeasonalHerosPath = false,
 }
 
 -- Get all options and verify them
@@ -103,6 +104,14 @@ function tpm:LoadOptions()
         local setting = Settings.RegisterAddOnSetting(optionsCategory, "Hearthstone_Dropdown", optionsKey, db, type(defaultsDB[optionsKey]), L["Hearthstone Toy"], defaultsDB[optionsKey])
         Settings.CreateDropdown(optionsCategory, setting, GetOptions, tooltip)
         Settings.SetOnValueChangedCallback("Hearthstone_Dropdown", OnSettingChanged)
+    end
+
+    do
+        local optionsKey = "showOnlySeasonalHerosPath"
+        local tooltip = L["Seasonal Teleports Toggle Tooltip"]
+        local setting = Settings.RegisterAddOnSetting(optionsCategory, "ShowOnlySeasonalHerosPath_Checkbox", optionsKey, db, type(defaultsDB[optionsKey]), L["Seasonal Teleports"], defaultsDB[optionsKey])
+        Settings.SetOnValueChangedCallback("ShowOnlySeasonalHerosPath_Checkbox", OnSettingChanged)
+        Settings.CreateCheckbox(optionsCategory, setting, tooltip)
     end
 
     -- Reverse Flyouts Checkbox
